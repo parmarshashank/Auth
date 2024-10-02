@@ -12,6 +12,21 @@ const JWT_SECRET = "thisisarandomjwtsecretkey"
 //     }
 //     return token;
 // }
+function authMiddleWare(req, res, next){
+    const token= req.headers.token;
+    const decodedInformation= jwt.verify(token, JWT_SECRET, (err, decoded)=>{
+        if(err){
+            res.status(401).send({
+                message:"unauthorized",
+            })
+        }
+        else{
+            req.user = decoded;
+            next();
+        }
+    }); 
+
+}
 
 app.post('/signup', function (req, res) {
     const username = req.body.username;
@@ -48,24 +63,29 @@ app.post('/signin', function (req, res) {
         res.status(403).json({ message: "The user does not exist or password is incorrect" }); 
     }
 });
-
+app.use(authMiddleWare);
 app.get("/me", function(req, res){
-    const token= req.headers.token;
-    const decodedInformation= jwt.verify(token, JWT_SECRET); //{ username: "snfjksnfjk"} converting jwt to the username
-    const username= decodedInformation.username;
+    // const token= req.headers.token;
+    // const decodedInformation= jwt.verify(token, JWT_SECRET); //{ username: "snfjksnfjk"} converting jwt to the username
+    // const username= decodedInformation.username;
     
-    const user= users.find((u)=>u.username===username);
-    if(user){
-        res.json({
-            username: user.username,
-            password: user.password
-        });
-    }
-    else{
-        res.json({
-            message:"token invalid",
-        })
-    }
+    // const user= users.find((u)=>u.username===username);
+    // if(user){
+    //     res.json({
+    //         username: user.username,
+    //         password: user.password
+    //     });
+    // }
+    // else{
+    //     res.json({
+    //         message:"token invalid",
+    //     })
+    // }
+    const user= req.user;
+    res.send({
+        username: user.username,
+        password: user.password,
+    })
 })
 
 app.listen(3000, () => {
